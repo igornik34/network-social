@@ -26,16 +26,26 @@ export const slice = createSlice({
           ...state.currentDialog.messages,
           message,
         ]
+      } else {
+        state.dialogs
+          ?.find(dialog => dialog.id === message.dialogID)
+          ?.messages.push(message)
       }
-      // state.dialogs
-      //   ?.find(dialog => dialog.id === message.dialogID)
-      //   ?.messages.push(message)
     },
     resetCurrentDialog: state => {
       state.currentDialog = null
     },
+    setCurrentDialog: (state, action: PayloadAction<Dialog>) => {
+      state.currentDialog = action.payload
+    },
     setDialog: (state, action: PayloadAction<Dialog>) => {
-      state.dialogs?.push(action.payload)
+      const existingDialog = state.dialogs?.find(
+        dialog => dialog.id === action.payload.id,
+      )
+      if (!existingDialog)
+        state.dialogs = state.dialogs
+          ? [...state.dialogs, action.payload]
+          : [action.payload]
     },
   },
   extraReducers: builder => {
@@ -74,7 +84,7 @@ export const slice = createSlice({
   },
 })
 
-export const { setMessage, resetCurrentDialog, setDialog } = slice.actions
+export const { setMessage, resetCurrentDialog, setDialog, setCurrentDialog } = slice.actions
 export default slice.reducer
 
 export const selectDialogs = (state: RootState) => state.dialogs.dialogs

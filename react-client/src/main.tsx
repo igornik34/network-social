@@ -18,9 +18,11 @@ import { Dialogs } from "./pages/dialogs"
 import { SocketProvider } from "./components/socket-provider"
 import { CurrentDialog } from "./pages/current-dialog"
 import { DialogsGuard } from "./features/dialogs/dialogsGuard"
+import ru from "javascript-time-ago/locale/ru"
+import TimeAgo from "javascript-time-ago"
 
 const container = document.getElementById("root")
-
+TimeAgo.addDefaultLocale(ru)
 const router = createBrowserRouter([
   {
     path: "/auth",

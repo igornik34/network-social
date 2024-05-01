@@ -8,20 +8,23 @@ import React, {
 import { useDispatch, useSelector } from "react-redux"
 import { selectCurrent } from "../../features/user/user.slice"
 import { Socket, io } from "socket.io-client"
-import { Message, User } from "../../app/types"
+import { Dialog, Message, User } from "../../app/types"
 import { BASE_URL } from "../../constants"
 import { useNavigate } from "react-router-dom"
 import { AppDispatch } from "../../app/store"
-import { selectDialogs, setDialog, setMessage } from "../../features/dialogs/dialogs.slice"
+import {
+  selectDialogs,
+  setCurrentDialog,
+  setDialog,
+  setMessage,
+} from "../../features/dialogs/dialogs.slice"
 
 interface ISocketContext {
   socket: Socket | null
-  onlineUsers: User[]
 }
 
 const SocketContext = createContext<ISocketContext>({
   socket: null,
-  onlineUsers: [],
 })
 
 export const useSocketContext = () => {
@@ -30,11 +33,9 @@ export const useSocketContext = () => {
 
 export const SocketProvider = ({ children }: { children: ReactNode }) => {
   const [socket, setSocket] = useState<Socket | null>(null)
-  const [onlineUsers, setOnlineUsers] = useState([])
   const currentUser = useSelector(selectCurrent)
-  const dialogs = useSelector(selectDialogs)
   const dispatch = useDispatch<AppDispatch>()
-  
+
   useEffect(() => {
     if (currentUser) {
       const socket = io(BASE_URL, {
@@ -45,15 +46,12 @@ export const SocketProvider = ({ children }: { children: ReactNode }) => {
 
       setSocket(socket)
 
-      // socket.on() is used to listen to the events. can be used both on client and server side
-      socket.on("getOnlineUsers", users => {
-        setOnlineUsers(users)
+      socket.on("SERVER:NEW_DIALOG", (newDialog: Dialog) => {
+        console.log(newDialog);
+        dispatch(setDialog(newDialog))
       })
-      socket.on("newMessage", (newMessage: Message) => {
-        const existingDialog = dialogs?.find(dialog => dialog.id === newMessage.dialogID)
-        if(!existingDialog) {
-          dispatch(setDialog(newMessage.dialog))
-        }
+      socket.on("SERVER:NEW_MESSAGE", (newMessage: Message) => {
+        console.log(newMessage);
         dispatch(setMessage(newMessage))
       })
     } else {
@@ -67,9 +65,8 @@ export const SocketProvider = ({ children }: { children: ReactNode }) => {
     }
   }, [currentUser])
 
-
   return (
-    <SocketContext.Provider value={{ socket, onlineUsers }}>
+    <SocketContext.Provider value={{ socket }}>
       {children}
     </SocketContext.Provider>
   )

@@ -12,10 +12,10 @@ export const Dialogs = () => {
   const dialogs = useSelector(selectDialogs)
   const currentUser = useSelector(selectCurrent)
 
-  const jsx = dialogs?.map(dialog => {
+  const dialogsList = dialogs?.map(dialog => {
     const receiver = dialog.participants.find(p => p.id !== currentUser?.id)
     return (
-      <Link to={receiver?.id ?? ""}>
+      <Link key={dialog.id} to={receiver?.id ?? ""}>
         <Card>
           <CardBody className="flex flex-row gap-5">
             <Avatar
@@ -31,5 +31,5 @@ export const Dialogs = () => {
       </Link>
     )
   })
-  return <div className="flex flex-col gap-3">{jsx}</div>
+  return <div className="flex flex-col gap-3">{dialogsList}</div>
 }

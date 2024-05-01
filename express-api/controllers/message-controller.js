@@ -7,9 +7,10 @@ const MessageController = {
       const { text } = req.body;
       const { id: receiverId } = req.params;
       const senderId = req.user.userId;
+      const receiverSocketId = getReceiverSocketId(receiverId);
 
-      console.log(req.params);
 
+      // ЭТОТ БЛОК ОТВЕЧАЕТ ЗА ТО, ЧТО ЕСЛИ ДИАЛОГ УЖЕ ЕСТЬ
       let dialog = await prisma.dialog.findFirst({
         where: {
           participantIDs: {
@@ -18,17 +19,41 @@ const MessageController = {
         },
       });
 
+      // ЭТОТ БЛОК ОТВЕЧАЕТ ЗА ТО, ЧТО ЕСЛИ ДИАЛОГА ЕЩЕ НЕТ
       if (!dialog) {
-        dialog = await prisma.dialog.create({
+        let dialog = await prisma.dialog.create({
           data: {
             participants: {
               connect: [{ id: senderId }, { id: receiverId }],
             },
+            messages: {
+              create: {
+                text: text,
+                sender: {
+                  connect: {
+                    id: senderId
+                  }
+                }
+              }
+            }
           },
+          include: {
+            messages: {
+              include: {
+                sender: true
+              }
+            },
+            participants: true
+          }
         });
+        if (receiverSocketId) {
+          io.to(receiverSocketId).emit("SERVER:NEW_DIALOG", dialog);
+        }
+        console.log(dialog);
+        return res.status(201).json(dialog);
       }
 
-      const newMessage = await prisma.message.create({
+      let newMessage = await prisma.message.create({
         data: {
           dialog: {
             connect: {
@@ -43,22 +68,23 @@ const MessageController = {
           },
         },
         include: {
+          sender: true,
           dialog: {
-            include: { messages: true, participants: true },
+            include: {
+              messages: { include: { sender: true } },
+              participants: true,
+            },
           },
         },
       });
 
       // SOCKET IO FUNCTIONALITY WILL GO HERE
-      const receiverSocketId = getReceiverSocketId(receiverId);
       if (receiverSocketId) {
-        console.log("new message");
-        io.to(receiverSocketId).emit("newMessage", newMessage);
+        io.to(receiverSocketId).emit("SERVER:NEW_MESSAGE", newMessage);
       }
-
-      res.status(201).json(newMessage);
+      return res.status(201).json(newMessage);
     } catch (error) {
-      console.log("Error in sendMessage controller: ", error.message);
+      console.log("Error in sendMessage controller: ", error);
       res.status(500).json({ error: "Internal server error" });
     }
   },
