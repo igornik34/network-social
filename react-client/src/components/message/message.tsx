@@ -6,8 +6,6 @@ interface MessageProps extends MessageType {
 }
 
 export const Message: FC<MessageProps> = props => {
-  console.log(props.senderID, props.currentId)
-
   const styles = props.senderID === props.currentId ? "self-end" : "self-start"
   return (
     <div

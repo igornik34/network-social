@@ -15,7 +15,6 @@ export type Dialog = {
   messages: Message[]
 }
 
-
 export type User = {
   id: string
   email: string

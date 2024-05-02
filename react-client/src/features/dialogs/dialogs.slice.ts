@@ -3,6 +3,7 @@ import { Dialog, Message } from "../../app/types"
 import { dialogApi } from "../../app/services/dialogApi"
 import { RootState } from "../../app/store"
 import { messageApi } from "../../app/services/messageApi"
+import { isDialog, isMessage } from "../../app/type_guards"
 
 interface InitialState {
   dialogs: Dialog[] | null
@@ -66,18 +67,21 @@ export const slice = createSlice({
       .addMatcher(
         messageApi.endpoints.sendMessage.matchFulfilled,
         (state, action) => {
-          const message = action.payload
-          const existingDialog = state.dialogs?.find(
-            dialog => dialog.id === message.dialogID,
-          )
-          if (!existingDialog) {
-            state.dialogs?.push(message.dialog)
-            console.log(message.dialog);
-            
-            state.currentDialog = message.dialog
+          if(isMessage(action.payload)) {
+            const message = action.payload
+            if (state.currentDialog) {
+              state.currentDialog.messages.push(message)
+            }
           }
-          if (state.currentDialog) {
-            state.currentDialog.messages.push(message)
+          console.log(action.payload);
+          
+          console.log("message: " + isMessage(action.payload));
+          console.log("dialog: " + isDialog(action.payload));
+          if(isDialog(action.payload)) {
+            const dialog = action.payload
+            
+            state.currentDialog = dialog
+            state.dialogs?.push(dialog)
           }
         },
       )

@@ -1,10 +1,10 @@
-import { Message } from "../types"
+import { Dialog, Message } from "../types"
 import { api } from "./api"
 
 export const messageApi = api.injectEndpoints({
   endpoints: builder => ({
     sendMessage: builder.mutation<
-      Message,
+      Message | Dialog,
       { text: string; receiverId: string }
     >({
       query: ({ text, receiverId }) => ({
