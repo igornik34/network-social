@@ -9,12 +9,12 @@ generator client {
 }
 
 datasource db {
-  provider = "mongodb"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
 model User {
-  id          String    @id @default(auto()) @map("_id") @db.ObjectId
+  id          String    @id @default(uuid())
   email       String    @unique
   password    String
   name        String?
@@ -31,61 +31,64 @@ model User {
   followers Follows[] @relation("following")
   following Follows[] @relation("follower")
 
-  dialogIDs String[]  @db.ObjectId
-  dialogs   Dialog[]  @relation(fields: [dialogIDs], references: [id])
-  messages   Message[]
-  online Boolean?
+  dialogs  Dialog[]
+  online   Boolean?
   lastSeen DateTime?
+  Message  Message[]
 }
 
 model Dialog {
-  id             String    @id @default(auto()) @map("_id") @db.ObjectId
-  participantIDs String[]  @db.ObjectId
-  participants   User[]    @relation(fields: [participantIDs], references: [id])
-  messages       Message[] 
+  id            String    @id @default(uuid())
+  participants  User[]
+  messages      Message[]
+  lastMessageId String?
+  lastMessage   Message?  @relation("lastMessage", fields: [lastMessageId], references: [id])
+
+  @@unique([id, lastMessageId])
+}
+
+model Message {
+  id                String   @id @default(uuid())
+  text              String
+  senderId          String
+  sender            User     @relation(fields: [senderId], references: [id])
+  dialogId          String
+  dialog            Dialog   @relation(fields: [dialogId], references: [id])
+  dialogLastMessage Dialog[] @relation("lastMessage")
+  createdAt         DateTime @default(now())
 }
 
 model Follows {
-  id          String @id @default(auto()) @map("_id") @db.ObjectId
+  id          String @id @default(uuid())
   follower    User   @relation("follower", fields: [followerId], references: [id])
-  followerId  String @db.ObjectId
+  followerId  String
   following   User   @relation("following", fields: [followingId], references: [id])
-  followingId String @db.ObjectId
+  followingId String
 }
 
 model Post {
-  id        String    @id @default(auto()) @map("_id") @db.ObjectId
+  id        String    @id @default(uuid())
   content   String
   author    User      @relation(fields: [authorId], references: [id])
-  authorId  String    @db.ObjectId
+  authorId  String
   likes     Like[]
   comments  Comment[]
   createdAt DateTime  @default(now())
 }
 
 model Like {
-  id     String @id @default(auto()) @map("_id") @db.ObjectId
+  id     String @id @default(uuid())
   user   User   @relation(fields: [userId], references: [id])
-  userId String @db.ObjectId
+  userId String
   post   Post   @relation(fields: [postId], references: [id])
-  postId String @db.ObjectId
+  postId String
 }
 
 model Comment {
-  id      String @id @default(auto()) @map("_id") @db.ObjectId
+  id      String @id @default(uuid())
   content String
   user    User   @relation(fields: [userId], references: [id])
-  userId  String @db.ObjectId
+  userId  String
   Post    Post   @relation(fields: [postId], references: [id])
-  postId  String @db.ObjectId
-}
-
-model Message {
-  id        String   @id @default(auto()) @map("_id") @db.ObjectId
-  text      String
-  senderID  String   @db.ObjectId
-  sender    User     @relation(fields: [senderID], references: [id])
-  dialogID  String   @db.ObjectId
-  dialog    Dialog   @relation(fields: [dialogID], references: [id])
-  createdAt DateTime @default(now())
+  postId  String
 }

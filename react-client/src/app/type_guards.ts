@@ -6,10 +6,10 @@ export function isDialog(obj: any): obj is Dialog {
     typeof obj === "object" &&
     obj !== null &&
     typeof obj.id === "string" &&
-    Array.isArray(obj.participantIDs) &&
     Array.isArray(obj.participants) &&
     Array.isArray(obj.messages) &&
-    obj.messages.every(isMessage)
+    obj.messages.every(isMessage) && 
+    isMessage(obj.lastMessage)
   )
 }
 
@@ -20,8 +20,8 @@ export function isMessage(obj: any): obj is Message {
     obj !== null &&
     typeof obj.id === "string" &&
     typeof obj.text === "string" &&
-    typeof obj.senderID === "string" &&
-    typeof obj.dialogID === "string"
+    typeof obj.senderId === "string" &&
+    typeof obj.dialogId === "string"
   )
 }
 
@@ -42,8 +42,6 @@ export function isUser(obj: any): obj is User {
     Array.isArray(obj.comments) &&
     (typeof obj.isFollowing === "undefined" ||
       typeof obj.isFollowing === "boolean") &&
-    Array.isArray(obj.dialogIDs) &&
-    obj.dialogIDs.every((id: any) => typeof id === "string") &&
     Array.isArray(obj.dialogs) &&
     obj.dialogs.every(isDialog) &&
     (typeof obj.online === "undefined" || typeof obj.online === "boolean") &&

@@ -24,13 +24,21 @@ export const slice = createSlice({
 
       if (state.currentDialog) {
         state.currentDialog.messages = [
-          ...state.currentDialog.messages,
+          ...state.currentDialog?.messages,
           message,
         ]
       } else {
-        state.dialogs
-          ?.find(dialog => dialog.id === message.dialogID)
-          ?.messages.push(message)
+        if (state.dialogs) {
+          const dialogIndex = state.dialogs.findIndex(
+            dialog => dialog.id === message.dialogId,
+          )
+          if (dialogIndex !== -1) {
+            // Если диалог найден, обновите его lastMessage
+            state.dialogs[dialogIndex].lastMessage = message
+            // Переназначьте state.dialogs, чтобы обновить изменения
+            state.dialogs = [...state.dialogs]
+          }
+        }
       }
     },
     resetCurrentDialog: state => {
@@ -67,19 +75,19 @@ export const slice = createSlice({
       .addMatcher(
         messageApi.endpoints.sendMessage.matchFulfilled,
         (state, action) => {
-          if(isMessage(action.payload)) {
+          if (isMessage(action.payload)) {
             const message = action.payload
             if (state.currentDialog) {
               state.currentDialog.messages.push(message)
             }
           }
-          console.log(action.payload);
-          
-          console.log("message: " + isMessage(action.payload));
-          console.log("dialog: " + isDialog(action.payload));
-          if(isDialog(action.payload)) {
+          console.log(action.payload)
+
+          console.log("message: " + isMessage(action.payload))
+          console.log("dialog: " + isDialog(action.payload))
+          if (isDialog(action.payload)) {
             const dialog = action.payload
-            
+
             state.currentDialog = dialog
             state.dialogs?.push(dialog)
           }
@@ -88,7 +96,8 @@ export const slice = createSlice({
   },
 })
 
-export const { setMessage, resetCurrentDialog, setDialog, setCurrentDialog } = slice.actions
+export const { setMessage, resetCurrentDialog, setDialog, setCurrentDialog } =
+  slice.actions
 export default slice.reducer
 
 export const selectDialogs = (state: RootState) => state.dialogs.dialogs

@@ -9,11 +9,12 @@ const DialogController = {
         .dialogs({
           include: {
             participants: true,
-            messages: {
-              include: {
-                sender: true,
-              },
-            },
+            lastMessage: true
+          },
+          orderBy: {
+            lastMessage: {
+              createdAt: "desc"
+            }
           },
         });
       res.send(dialogs);
@@ -29,9 +30,10 @@ const DialogController = {
     try {
       const dialog = await prisma.dialog.findFirst({
         where: {
-          participantIDs: {
-            hasEvery: [senderId, id],
-          },
+          AND: [
+            { participants: { some: { id: senderId } } },
+            { participants: { some: { id: id } } },
+          ],
         },
         include: {
           messages: {

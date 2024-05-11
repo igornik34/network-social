@@ -2,20 +2,20 @@ const { prisma } = require("../prisma/prisma-client");
 const { getReceiverSocketId, io } = require("../socket/socket.js");
 
 const MessageController = {
-  sendMessage: async (req, res) => {
+  send: async (req, res) => {
     try {
       const { text } = req.body;
       const { id: receiverId } = req.params;
       const senderId = req.user.userId;
       const receiverSocketId = getReceiverSocketId(receiverId);
 
-
       // ЭТОТ БЛОК ОТВЕЧАЕТ ЗА ТО, ЧТО ЕСЛИ ДИАЛОГ УЖЕ ЕСТЬ
       let dialog = await prisma.dialog.findFirst({
         where: {
-          participantIDs: {
-            hasEvery: [senderId, receiverId],
-          },
+          AND: [
+            { participants: { some: { id: senderId } } },
+            { participants: { some: { id: receiverId } } },
+          ],
         },
       });
 
@@ -26,26 +26,59 @@ const MessageController = {
             participants: {
               connect: [{ id: senderId }, { id: receiverId }],
             },
+          },
+        });
+
+        const newMessage = await prisma.message.create({
+          data: {
+            dialog: {
+              connect: {
+                id: dialog.id,
+              },
+            },
+            dialogLastMessage: {
+              connect: {
+                id: dialog.id,
+              },
+            },
+            text: text,
+            sender: {
+              connect: {
+                id: senderId,
+              },
+            },
+          },
+        });
+
+        await prisma.dialog.update({
+          where: {
+            id: dialog.id,
+          },
+          data: {
             messages: {
-              create: {
-                text: text,
-                sender: {
-                  connect: {
-                    id: senderId
-                  }
-                }
-              }
-            }
+              connect: {
+                id: newMessage.id,
+              },
+            },
+            lastMessage: {
+              connect: {
+                id: newMessage.id,
+              },
+            },
+          },
+        });
+
+        dialog = await prisma.dialog.findFirst({
+          where: {
+            id: dialog.id,
           },
           include: {
-            messages: {
-              include: {
-                sender: true
-              }
-            },
-            participants: true
-          }
+            participants: true,
+            messages: true,
+            lastMessage: true
+          },
         });
+
         if (receiverSocketId) {
           io.to(receiverSocketId).emit("SERVER:NEW_DIALOG", dialog);
         }
@@ -66,13 +99,25 @@ const MessageController = {
               id: senderId,
             },
           },
+          dialogLastMessage: {
+            connect: {
+              id: dialog.id,
+            },
+          },
         },
         include: {
           sender: true,
-          dialog: {
-            include: {
-              messages: { include: { sender: true } },
-              participants: true,
+        },
+      });
+
+      await prisma.dialog.update({
+        where: {
+          id: dialog.id,
+        },
+        data: {
+          lastMessage: {
+            connect: {
+              id: newMessage.id,
             },
           },
         },

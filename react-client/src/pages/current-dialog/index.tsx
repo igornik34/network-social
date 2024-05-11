@@ -96,10 +96,10 @@ export const CurrentDialog = () => {
         <Divider />
         <CardBody className="flex flex-col p-4">
           <div
-            className="w-full h-[60vh] relative overflow-auto scrollbar-hide flex flex-col gap-2"
+            className="w-full h-[60vh] scrollbar-hide relative overflow-auto flex flex-col gap-2"
             ref={listMessagesRef}
           >
-            {currentDialog?.messages.map(mess => (
+            {currentDialog?.messages && currentDialog.messages.map(mess => (
               <Message {...mess} key={mess.id} currentId={current?.id ?? ""} />
             ))}
           </div>

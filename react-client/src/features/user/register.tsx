@@ -12,7 +12,7 @@ type Register = {
   email: string
   name: string
   password: string
-    repeatPassword: string
+  repeatPassword: string
 }
 
 type Props = {

@@ -13,7 +13,7 @@ export const Dialogs = () => {
   const currentUser = useSelector(selectCurrent)
 
   const dialogsList = dialogs?.map(dialog => {
-    const receiver = dialog.participants.find(p => p.id !== currentUser?.id)
+    const receiver = dialog.participants && dialog.participants.find(p => p.id !== currentUser?.id)
     return (
       <Link key={dialog.id} to={receiver?.id ?? ""}>
         <Card>
@@ -24,7 +24,7 @@ export const Dialogs = () => {
             />
             <div className="flex flex-col gap-2">
               <Typography size="text-2xl" weight="semibold">{receiver?.name ?? ""}</Typography>
-              <Typography>{dialog.messages[dialog.messages.length - 1].text}</Typography>
+              <Typography>{dialog.lastMessage?.text ?? ""}</Typography>
             </div>
           </CardBody>
         </Card>

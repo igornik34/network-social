@@ -8,7 +8,7 @@ export const messageApi = api.injectEndpoints({
       { text: string; receiverId: string }
     >({
       query: ({ text, receiverId }) => ({
-        url: `/send-message/${receiverId}`,
+        url: `/message/send/${receiverId}`,
         method: "POST",
         body: { text },
       }),

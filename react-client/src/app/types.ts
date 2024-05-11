@@ -1,18 +1,20 @@
 export type Message = {
   id: string
   text: string
-  senderID: string
-  sender: User
-  dialogID: string
-  dialog: Dialog
+  senderId: string
+  sender?: User
+  dialogId: string
+  dialog?: Dialog
+  dialogLastMessageId: string
+  dialogLastMessage?: Dialog
   createdAt: Date
 }
 
 export type Dialog = {
   id: string
-  participantIDs: string[]
   participants: User[]
   messages: Message[]
+  lastMessage?: Message
 }
 
 export type User = {
@@ -26,13 +28,14 @@ export type User = {
   updatedAt: Date
   bio?: string
   location?: string
+
   posts: Post[]
   following: Follows[]
   followers: Follows[]
   likes: Like[]
   comments: Comment[]
   isFollowing?: boolean
-  dialogIDs: string[]
+
   dialogs: Dialog[]
   online?: boolean
   lastSeen?: Date

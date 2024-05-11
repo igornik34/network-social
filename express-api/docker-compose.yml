@@ -5,13 +5,43 @@ services:
     ports:
       - "3000:3000"
     depends_on:
-      - db
+      - postgres
     environment:
-      DATABASE_URL: "mongodb://monty:pass@db:27017/mydatabase?authSource=admin&directConnection=true"
-  db:
-    image: prismagraphql/mongo-single-replica:5.0.3
+      DATABASE_URL: "postgresql://postgres:postgres@postgres:5432/social_network"
+  postgres:
+    container_name: postgres_container
+    image: postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      PGDATA: /data/postgres
+    volumes:
+      - postgres:/data/postgres
     ports:
-      - "27017:27017"
+      - "5433:5432"
+    networks:
+      - postgres
+    restart: unless-stopped
+  
+  pgadmin:
+    container_name: pgadmin_container
+    image: dpage/pgadmin4
     environment:
-      MONGO_INITDB_ROOT_USERNAME: monty
-      MONGO_INITDB_ROOT_PASSWORD: pass
+      PGADMIN_DEFAULT_EMAIL: admin@mymail.ru
+      PGADMIN_DEFAULT_PASSWORD: adminpassword
+      PGADMIN_CONFIG_SERVER_MODE: 'False'
+    volumes:
+      - pgadmin:/var/lib/pgadmin
+
+    ports:
+      - 8081:80
+    networks:
+      - postgres
+    restart: unless-stopped
+networks:
+  postgres:
+    driver: bridge
+
+volumes:
+    postgres:
+    pgadmin:

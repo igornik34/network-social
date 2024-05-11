@@ -27,21 +27,13 @@ io.on("connection", async (socket) => {
     await prisma.user.update({ where: { id: userId }, data: { online: true } });
   }
   if (userId != "undefined") userSocketMap[userId] = socket.id;
-
-  // io.emit() is used to send events to all the connected clients
-  // io.emit("getOnlineUsers", Object.keys(userSocketMap));
-
-  // socket.on() is used to listen to the events. can be used both on client and server side
   socket.on("disconnect", async () => {
     console.log("user disconnected", socket.id);
-    if (user) {
-      await prisma.user.update({
-        where: { id: userId },
-        data: { online: false, lastSeen: new Date() },
-      });
-    }
+    await prisma.user.update({
+      where: { id: userId },
+      data: { online: false, lastSeen: new Date() },
+    });
     delete userSocketMap[userId];
-    // io.emit("getOnlineUsers", Object.keys(userSocketMap));
   });
 });
 
