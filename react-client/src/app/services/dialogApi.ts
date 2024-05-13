@@ -1,5 +1,4 @@
-import { url } from "inspector"
-import { Dialog, Message, User } from "../types"
+import { Dialog, User } from "../types"
 import { api } from "./api"
 
 export const dialogApi = api.injectEndpoints({
@@ -19,7 +18,7 @@ export const dialogApi = api.injectEndpoints({
     getReceiverById: builder.query<User, string>({
       query: id => ({
         url: `/receiver/${id}`,
-        method: "GET"
+        method: "GET",
       }),
     }),
   }),

@@ -26,8 +26,17 @@ const DialogController = {
   getDialogById: async (req, res) => {
     const { id } = req.params;
     const senderId = req.user.userId;
-    console.log(req.params);
     try {
+      const receiver = await prisma.user.findUnique({
+        where: {
+          id
+        }
+      })
+
+      if(!receiver) {
+        return res.status(404).json({ error: "Получатель не найден" });
+      }
+
       const dialog = await prisma.dialog.findFirst({
         where: {
           AND: [
@@ -41,6 +50,12 @@ const DialogController = {
               sender: true,
             },
           },
+          participants: {
+            include: true
+          },
+          lastMessage: {
+            include: true
+          }
         },
       });
 

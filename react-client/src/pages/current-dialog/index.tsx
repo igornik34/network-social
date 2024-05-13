@@ -1,14 +1,13 @@
 import React, { useEffect, useRef } from "react"
 import { useSendMessageMutation } from "../../app/services/messageApi"
 import {
-  Button,
   Card,
   CardBody,
   CardFooter,
   CardHeader,
   Divider,
   Input,
-  ScrollShadow,
+  Spinner,
 } from "@nextui-org/react"
 import { Link, useParams } from "react-router-dom"
 import { User } from "../../components/user"
@@ -16,7 +15,6 @@ import { GoBack } from "../../components/go-back"
 import {
   useGetDialogByIdQuery,
   useGetReceiverByIdQuery,
-  useLazyGetDialogByIdQuery,
 } from "../../app/services/dialogApi"
 import { useDispatch, useSelector } from "react-redux"
 import { selectCurrent } from "../../features/user/user.slice"
@@ -25,12 +23,11 @@ import {
   selectCurrentDialog,
 } from "../../features/dialogs/dialogs.slice"
 import { AppDispatch } from "../../app/store"
-import ReactTimeAgo, { useTimeAgo } from "react-time-ago"
+import { useTimeAgo } from "react-time-ago"
 import { IoMdSend } from "react-icons/io"
 import { Controller, useForm } from "react-hook-form"
-import { ErrorMessage } from "../../components/error-message"
 import { scrollBottom } from "../../utils/scroll-bottom"
-import { Message } from "../../components/message/message"
+import { Message } from "../../components/message"
 
 interface MessageForm {
   message: string
@@ -39,7 +36,7 @@ interface MessageForm {
 export const CurrentDialog = () => {
   const { id } = useParams<{ id: string }>()
   const { data: userReceiver } = useGetReceiverByIdQuery(id ?? "")
-  const { data } = useGetDialogByIdQuery(id ?? "")
+  const { data: responsedDialog, isLoading } = useGetDialogByIdQuery(id ?? "")
   const currentDialog = useSelector(selectCurrentDialog)
   const current = useSelector(selectCurrent)
   const [sendMessage] = useSendMessageMutation()
@@ -54,7 +51,6 @@ export const CurrentDialog = () => {
     formState: { errors },
     setValue,
   } = useForm<MessageForm>()
-  const error = errors?.message?.message as string
   const listMessagesRef = useRef<HTMLDivElement | null>(null)
   const onSubmit = handleSubmit(async data => {
     try {
@@ -99,9 +95,13 @@ export const CurrentDialog = () => {
             className="w-full h-[60vh] scrollbar-hide relative overflow-auto flex flex-col gap-2"
             ref={listMessagesRef}
           >
-            {currentDialog?.messages && currentDialog.messages.map(mess => (
+            {!currentDialog.isNewDialog && currentDialog.dialog?.messages.map(mess => (
               <Message {...mess} key={mess.id} currentId={current?.id ?? ""} />
             ))}
+            {currentDialog.isNewDialog && (
+              "Напишите пользователю"
+            )}
+            {isLoading && <Spinner />}
           </div>
         </CardBody>
         <Divider />

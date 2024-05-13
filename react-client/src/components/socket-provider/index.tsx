@@ -1,4 +1,4 @@
-import React, {
+import {
   ReactNode,
   createContext,
   useContext,
@@ -8,16 +8,11 @@ import React, {
 import { useDispatch, useSelector } from "react-redux"
 import { selectCurrent } from "../../features/user/user.slice"
 import { Socket, io } from "socket.io-client"
-import { Dialog, Message, User } from "../../app/types"
+import { Dialog, Message } from "../../app/types"
 import { BASE_URL } from "../../constants"
-import { useNavigate } from "react-router-dom"
 import { AppDispatch } from "../../app/store"
-import {
-  selectDialogs,
-  setCurrentDialog,
-  setDialog,
-  setMessage,
-} from "../../features/dialogs/dialogs.slice"
+import { setDialog, setMessage } from "../../features/dialogs/dialogs.slice"
+import notificationSound from "../../assets/notification.mp3"
 
 interface ISocketContext {
   socket: Socket | null
@@ -47,12 +42,16 @@ export const SocketProvider = ({ children }: { children: ReactNode }) => {
       setSocket(socket)
 
       socket.on("SERVER:NEW_DIALOG", (newDialog: Dialog) => {
-        console.log(newDialog);
+        console.log(newDialog)
         dispatch(setDialog(newDialog))
+        const sound = new Audio(notificationSound)
+        sound.play()
       })
       socket.on("SERVER:NEW_MESSAGE", (newMessage: Message) => {
-        console.log(newMessage);
+        console.log(newMessage)
         dispatch(setMessage(newMessage))
+        const sound = new Audio(notificationSound)
+        sound.play()
       })
     } else {
       if (socket) {

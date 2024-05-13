@@ -1,5 +1,6 @@
 import React, { FC } from "react"
 import { Message as MessageType } from "../../app/types"
+import getFormatTime from "../../utils/get-format-time"
 
 interface MessageProps extends MessageType {
   currentId: string
@@ -16,8 +17,7 @@ export const Message: FC<MessageProps> = props => {
     >
       <span className="max-w-[200px]">{props.text}</span>
       <sub className="text-foreground-500 text-[0.7rem]">
-        {`${new Date(props.createdAt).getHours()}`}:
-        {`${new Date(props.createdAt).getMinutes()}`}
+        {getFormatTime(new Date(props.createdAt))}
       </sub>
     </div>
   )

@@ -4,15 +4,19 @@ import { dialogApi } from "../../app/services/dialogApi"
 import { RootState } from "../../app/store"
 import { messageApi } from "../../app/services/messageApi"
 import { isDialog, isMessage } from "../../app/type_guards"
+import { hasErrorField } from "../../utils/has-error-field"
 
 interface InitialState {
   dialogs: Dialog[] | null
-  currentDialog: Dialog | null
+  currentDialog: {
+    dialog: Dialog | null
+    isNewDialog?: boolean
+  }
 }
 
 const initialState: InitialState = {
   dialogs: null,
-  currentDialog: null,
+  currentDialog: { dialog: null },
 }
 
 export const slice = createSlice({
@@ -22,9 +26,9 @@ export const slice = createSlice({
     setMessage: (state, action: PayloadAction<Message>) => {
       const message = action.payload
 
-      if (state.currentDialog) {
-        state.currentDialog.messages = [
-          ...state.currentDialog?.messages,
+      if (state.currentDialog.dialog) {
+        state.currentDialog.dialog.messages = [
+          ...state.currentDialog.dialog.messages,
           message,
         ]
       } else {
@@ -42,10 +46,15 @@ export const slice = createSlice({
       }
     },
     resetCurrentDialog: state => {
-      state.currentDialog = null
+      state.currentDialog = {
+        dialog: null,
+      }
     },
     setCurrentDialog: (state, action: PayloadAction<Dialog>) => {
-      state.currentDialog = action.payload
+      state.currentDialog = {
+        ...state.currentDialog,
+        dialog: action.payload,
+      }
     },
     setDialog: (state, action: PayloadAction<Dialog>) => {
       const existingDialog = state.dialogs?.find(
@@ -69,7 +78,30 @@ export const slice = createSlice({
       .addMatcher(
         dialogApi.endpoints.getDialogById.matchFulfilled,
         (state, action) => {
-          state.currentDialog = action.payload
+          console.log(action.payload)
+
+          if (isDialog(action.payload)) {
+            state.currentDialog = {
+              dialog: action.payload,
+              isNewDialog: false,
+            }
+          }
+        },
+      )
+      .addMatcher(
+        dialogApi.endpoints.getDialogById.matchRejected,
+        (state, action) => {
+          console.log(action)
+
+          if (
+            hasErrorField(action.payload) &&
+            action.payload.data.error === "Диалог не найден"
+          ) {
+            state.currentDialog = {
+              dialog: null,
+              isNewDialog: true,
+            }
+          }
         },
       )
       .addMatcher(
@@ -77,8 +109,8 @@ export const slice = createSlice({
         (state, action) => {
           if (isMessage(action.payload)) {
             const message = action.payload
-            if (state.currentDialog) {
-              state.currentDialog.messages.push(message)
+            if (state.currentDialog.dialog) {
+              state.currentDialog.dialog.messages.push(message)
             }
           }
           console.log(action.payload)
@@ -88,7 +120,9 @@ export const slice = createSlice({
           if (isDialog(action.payload)) {
             const dialog = action.payload
 
-            state.currentDialog = dialog
+            state.currentDialog = {
+              dialog,
+            }
             state.dialogs?.push(dialog)
           }
         },

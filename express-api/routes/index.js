@@ -60,6 +60,6 @@ router.post('/message/send/:id', authenticateToken, MessageController.send)
 
 router.get('/dialogs', authenticateToken, DialogController.getAllDialogs)
 router.get('/dialogs/:id', authenticateToken, DialogController.getDialogById)
-router.get('/receiver/:id', authenticateToken, DialogController.getReceiverById)
+router.get('/receiver/:id', authenticateToken, DialogController.getReceiverById) //TODO: /dialogs?receiverId="..."
 
 module.exports = router;
