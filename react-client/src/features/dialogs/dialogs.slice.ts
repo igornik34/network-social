@@ -45,6 +45,16 @@ export const slice = createSlice({
         }
       }
     },
+    readMessage: (state, action: PayloadAction<string>) => {
+      if (state.currentDialog && state.currentDialog.dialog) {
+        const index = state.currentDialog.dialog.messages.findIndex(
+          m => m.id === action.payload,
+        )
+        if (index !== -1) {
+          state.currentDialog.dialog.messages[index].isReaded = true
+        }
+      }
+    },
     resetCurrentDialog: state => {
       state.currentDialog = {
         dialog: null,
@@ -127,11 +137,29 @@ export const slice = createSlice({
           }
         },
       )
+      .addMatcher(
+        messageApi.endpoints.readMessage.matchFulfilled,
+        (state, action) => {
+          if (state.currentDialog && state.currentDialog.dialog) {
+            const index = state.currentDialog.dialog.messages.findIndex(
+              m => m.id === action.payload.id,
+            )
+            if (index !== -1) {
+              state.currentDialog.dialog.messages[index].isReaded = true
+            }
+          }
+        },
+      )
   },
 })
 
-export const { setMessage, resetCurrentDialog, setDialog, setCurrentDialog } =
-  slice.actions
+export const {
+  setMessage,
+  resetCurrentDialog,
+  setDialog,
+  setCurrentDialog,
+  readMessage,
+} = slice.actions
 export default slice.reducer
 
 export const selectDialogs = (state: RootState) => state.dialogs.dialogs

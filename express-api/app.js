@@ -13,7 +13,6 @@ app.use(logger("dev"));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
-app.set("view engine", "jade");
 // Раздавать статические файлы из папки "uploads"
 app.use("/uploads", express.static("uploads"));
 
@@ -36,7 +35,6 @@ app.use(function (err, req, res, next) {
 
   // render the error page
   res.status(err.status || 500);
-  res.render("error");
 });
 
 server.listen("3000", () => {

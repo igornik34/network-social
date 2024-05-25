@@ -8,6 +8,7 @@ export type Message = {
   dialogLastMessageId: string
   dialogLastMessage?: Dialog
   createdAt: Date
+  isReaded: boolean
 }
 
 export type Dialog = {

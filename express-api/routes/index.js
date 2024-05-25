@@ -55,6 +55,7 @@ router.delete("/unfollow/:id", authenticateToken, FollowController.unfollowUser)
 
 // routes messages
 router.post('/message/send/:id', authenticateToken, MessageController.send)
+router.post('/message/read/:id', authenticateToken, MessageController.read)
 
 // routes dialogs
 

@@ -11,7 +11,7 @@ import { Socket, io } from "socket.io-client"
 import { Dialog, Message } from "../../app/types"
 import { BASE_URL } from "../../constants"
 import { AppDispatch } from "../../app/store"
-import { setDialog, setMessage } from "../../features/dialogs/dialogs.slice"
+import { readMessage, setDialog, setMessage } from "../../features/dialogs/dialogs.slice"
 import notificationSound from "../../assets/notification.mp3"
 
 interface ISocketContext {
@@ -52,6 +52,9 @@ export const SocketProvider = ({ children }: { children: ReactNode }) => {
         dispatch(setMessage(newMessage))
         const sound = new Audio(notificationSound)
         sound.play()
+      })
+      socket.on("SERVER:READ_MESSAGE", (readedMessageId: {id: string}) => {
+        dispatch(readMessage(readedMessageId.id))
       })
     } else {
       if (socket) {

@@ -13,10 +13,20 @@ export const messageApi = api.injectEndpoints({
         body: { text },
       }),
     }),
+    readMessage: builder.mutation<
+      Message,
+      { messageId: string; senderId: string }
+    >({
+      query: ({ messageId, senderId }) => ({
+        url: `/message/read/${messageId}`,
+        method: "POST",
+        body: { senderId },
+      }),
+    }),
   }),
 })
 
-export const { useSendMessageMutation } = messageApi
+export const { useSendMessageMutation, useReadMessageMutation } = messageApi
 export const {
   endpoints: { sendMessage },
 } = messageApi

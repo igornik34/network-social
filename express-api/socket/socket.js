@@ -13,8 +13,8 @@ const io = new Server(server, {
   },
 });
 
-const getReceiverSocketId = (receiverId) => {
-  return userSocketMap[receiverId];
+const getUserSocketId = (userId) => {
+  return userSocketMap[userId];
 };
 
 const userSocketMap = {}; // {userId: socketId}
@@ -37,4 +37,4 @@ io.on("connection", async (socket) => {
   });
 });
 
-module.exports = { app, io, server, getReceiverSocketId };
+module.exports = { app, io, server, getUserSocketId };

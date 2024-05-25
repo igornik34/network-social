@@ -1,5 +1,5 @@
 const { prisma } = require("../prisma/prisma-client");
-const { getReceiverSocketId, io } = require("../socket/socket.js");
+const { getUserSocketId, io } = require("../socket/socket.js");
 
 const MessageController = {
   send: async (req, res) => {
@@ -7,7 +7,7 @@ const MessageController = {
       const { text } = req.body;
       const { id: receiverId } = req.params;
       const senderId = req.user.userId;
-      const receiverSocketId = getReceiverSocketId(receiverId);
+      const receiverSocketId = getUserSocketId(receiverId);
 
       // ЭТОТ БЛОК ОТВЕЧАЕТ ЗА ТО, ЧТО ЕСЛИ ДИАЛОГ УЖЕ ЕСТЬ
       let dialog = await prisma.dialog.findFirst({
@@ -75,7 +75,7 @@ const MessageController = {
           include: {
             participants: true,
             messages: true,
-            lastMessage: true
+            lastMessage: true,
           },
         });
 
@@ -130,6 +130,29 @@ const MessageController = {
       return res.status(201).json(newMessage);
     } catch (error) {
       console.log("Error in sendMessage controller: ", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  },
+  read: async (req, res) => {
+    try {
+      const { id: messageId } = req.params;
+      const { senderId } = req.body;
+      const readedMessage = await prisma.message.update({
+        where: { id: messageId },
+        data: { isReaded: true },
+      });
+
+      const senderSocketId = getUserSocketId(senderId);
+
+      if (senderSocketId) {
+        io.to(senderSocketId).emit("SERVER:READ_MESSAGE", {
+          id: readedMessage.id,
+        });
+      }
+
+      res.status(200).json(readedMessage);
+    } catch (error) {
+      console.log("Error in readMessage controller: ", error);
       res.status(500).json({ error: "Internal server error" });
     }
   },

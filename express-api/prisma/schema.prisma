@@ -56,6 +56,7 @@ model Message {
   dialog            Dialog   @relation(fields: [dialogId], references: [id])
   dialogLastMessage Dialog[] @relation("lastMessage")
   createdAt         DateTime @default(now())
+  isReaded          Boolean  @default(false)
 }
 
 model Follows {
